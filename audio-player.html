@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <style>
+      html,
+      body {
+	  	  caret-color: transparent;
+
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        display: flex;
+        flex-flow: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      button {
+        width: 114px;
+        font-size: large;
+        height: 30px;
+        border: solid;
+
+        background-color: rgb(152, 192, 152);
+        cursor: pointer;
+      }
+
+      #preBtn {
+        border-bottom-left-radius: 30px;
+      }
+      #nextBtn {
+        border-bottom-right-radius: 30px;
+      }
+
+      #autoBtn {
+        background-color: tomato;
+      }
+      #pauseBtn {
+        background-color: lightgreen;
+      }
+      #muteBtn {
+        background-color: lightgreen;
+      }
+
+      #seekBar {
+        width: 550px;
+        appearance: none;
+        background: transparent;
+      }
+
+      #seekBarContainer {
+        box-sizing: border-box;
+        border: solid;
+        text-align: center;
+        line-height: 2;
+        width: 586px;
+        height: 30px;
+        background-color: lightskyblue;
+        margin-bottom: 4px;
+        border-top-right-radius: 30px;
+        border-top-left-radius: 30px;
+      }
+	  
+	  #currentAudio{
+	  font-size:50px;
+	  
+	  margin-bottom:10px;
+	  }
+    </style>
+  </head>
+  <body>
+    <span id="currentAudio">1</span>
+    <audio id="audioPlayer" src="audio/voice (1).mp3"></audio>
+    <div id="seekBarContainer">
+      <input type="range" id="seekBar" value="0" step="1" />
+    </div>
+
+    <div>
+      <button id="preBtn" onclick="previousVoice()">Previous</button>
+      <button id="autoBtn" onclick="toggleAutoPlay()">Play</button>
+      <button id="pauseBtn" onclick="togglePause()">Pause</button>
+      <button id="muteBtn" onclick="toggleMute()">Mute</button>
+      <button id="nextBtn" onclick="nextVoice()">Next</button>
+    </div>
+
+    <script>
+      audioPlayer = document.getElementById("audioPlayer");
+	  currentAudio = document.getElementById("currentAudio");
+      audioTracks = [
+        "audio/voice (1).mp3",
+        "audio/voice (2).mp3",
+        "audio/voice (3).mp3",
+      ];
+      currentIndex = 0;
+
+      isAutoPlaying = false;
+      isPaused = false;
+      isMuted = false;
+
+      autoBtn = document.getElementById("autoBtn");
+      pauseBtn = document.getElementById("pauseBtn");
+      muteBtn = document.getElementById("muteBtn");
+      seekBar = document.getElementById("seekBar");
+
+      function playCurrent() {
+        audioPlayer.src = audioTracks[currentIndex];
+        audioPlayer.play();
+      }
+
+      function previousVoice() {
+        currentIndex =
+          (currentIndex - 1 + audioTracks.length) % audioTracks.length;
+		  currentAudio.innerText = currentIndex+1;
+        audioPlayer.src = audioTracks[currentIndex];
+
+        audioPlayer.load();
+        if (isAutoPlaying && !isPaused) playCurrent();
+      }
+
+      function nextVoice() {
+        currentIndex = (currentIndex + 1) % audioTracks.length;
+		currentAudio.innerText = currentIndex+1;
+        audioPlayer.src = audioTracks[currentIndex];
+
+        audioPlayer.load();
+        if (isAutoPlaying && !isPaused) playCurrent();
+      }
+
+      function stopCurrent() {
+        audioPlayer.pause();
+        audioPlayer.currentTime = 0;
+      }
+
+      function toggleAutoPlay() {
+        isAutoPlaying = !isAutoPlaying;
+        autoBtn.textContent = isAutoPlaying ? "Stop" : "Play";
+        autoBtn.style.backgroundColor = isAutoPlaying ? "lightgreen" : "tomato";
+
+        if (isAutoPlaying && !isPaused) {
+          playCurrent();
+        } else {
+          stopCurrent();
+        }
+      }
+
+      function togglePause() {
+        if (!isAutoPlaying) return;
+        isPaused = !isPaused;
+        pauseBtn.textContent = isPaused ? "Continue" : "Pause";
+        pauseBtn.style.backgroundColor = isPaused ? "tomato" : "lightgreen";
+
+        if (isPaused) {
+          audioPlayer.pause();
+        } else {
+          audioPlayer.play();
+        }
+      }
+
+      function toggleMute() {
+        isMuted = !isMuted;
+        muteBtn.textContent = isMuted ? "Unmute" : "Mute";
+        muteBtn.style.backgroundColor = isMuted ? "tomato" : "lightgreen";
+
+        audioPlayer.muted = isMuted;
+      }
+
+      audioPlayer.addEventListener("ended", function () {
+        if (isAutoPlaying) {
+          nextVoice();
+        }
+      });
+
+      // Found this event, it fires when any metadata is loaded to the browser
+      // so we know when to check the audio duration
+      audioPlayer.addEventListener("loadedmetadata", () => {
+        seekBar.max = Math.floor(audioPlayer.duration);
+      });
+
+      audioPlayer.addEventListener("timeupdate", () => {
+        seekBar.value = Math.floor(audioPlayer.currentTime);
+      });
+
+      seekBar.addEventListener("input", () => {
+        audioPlayer.currentTime = seekBar.value;
+      });
+    </script>
+  </body>
+</html>
